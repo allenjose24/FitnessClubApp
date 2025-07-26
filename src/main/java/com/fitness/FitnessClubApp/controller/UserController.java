@@ -1,93 +1,129 @@
 package com.fitness.FitnessClubApp.controller;
 
-import com.fitness.FitnessClubApp.configuration.CustomUserDetails;
 import com.fitness.FitnessClubApp.model.User;
-import com.fitness.FitnessClubApp.repository.UserRepository;
+import com.fitness.FitnessClubApp.service.CurrentUser;
 import com.fitness.FitnessClubApp.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.expression.AccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
+    private final CurrentUser  currentUser;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
-    public User getLoggedInUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getUser();
-    }
 
     @GetMapping("/me")
     public ResponseEntity<User> getMyProfile() {
-        User loggedIn = getLoggedInUser();
+        User loggedIn = currentUser.getLoggedInUser();
         userService.loginTime(loggedIn.getMember().getEmail(), LocalDateTime.now());
         return ResponseEntity.ok(loggedIn);
     }
 
 
     @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() throws Exception {
-        return ResponseEntity.ok(userService.viewAllUsers(getLoggedInUser()));
+    public ResponseEntity<?> getAllUsers() throws Exception {
+        try{
+            List<User> userList = userService.viewAllUsers(currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(userList);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Exception Message : " + e);
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) throws Exception {
-        return ResponseEntity.ok(userService.viewUser(id, getLoggedInUser()));
+    public ResponseEntity<?> getUserById(@PathVariable Long id) throws Exception {
+        try{
+            User user = userService.viewUser(id, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        }catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Exception Message : " + e);
+        }
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) throws Exception {
-        return ResponseEntity.ok(userService.viewUserByUserName(username, getLoggedInUser()));
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) throws Exception {
+        try{
+            User user = userService.viewUserByUserName(username, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        }catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Exception Message : " + e);
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) throws Exception {
-        userService.deleteUser(id, getLoggedInUser());
-        return ResponseEntity.ok("User deleted successfully");
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) throws Exception {
+        try{
+            userService.deleteUser(id, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body("User has been deleted");
+        }catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Exception Message : " + e);
+        }
     }
 
     @PutMapping("/{id}/password")
-    public ResponseEntity<String> changePassword(
+    public ResponseEntity<?> changePassword(
             @PathVariable Long id,
             @RequestParam String oldPassword,
             @RequestParam String newPassword
     ) throws Exception {
-        userService.changeUserPassword(id, oldPassword, newPassword, getLoggedInUser());
-        return ResponseEntity.ok("Password updated successfully");
+        try{
+            userService.changeUserPassword(id, oldPassword, newPassword, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body("User has been changed");
+        } catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Exception Message : " + e);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateUser(
+    public ResponseEntity<?> updateUser(
             @PathVariable Long id,
             @RequestBody User newUser
     ) throws Exception {
-        userService.updateUser(id, newUser, getLoggedInUser());
-        return ResponseEntity.ok("User updated successfully");
+        try{
+            userService.updateUser(id, newUser, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body("User has been changed");
+        }catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Exception Message : " + e);
+        }
     }
 
     @GetMapping("/last-login")
-    public ResponseEntity<List<User>> getLastLoginUsers(@RequestParam int days) throws Exception {
-        return ResponseEntity.ok(userService.lastLogin(days, getLoggedInUser()));
+    public ResponseEntity<?> getLastLoginUsers(@RequestParam int days) throws Exception {
+        try{
+            List<User> userList = userService.lastLogin(days, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(userList);
+        } catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Exception Message : " + e);
+        }
     }
 
     @GetMapping("/last-joined")
-    public ResponseEntity<List<User>> getLastJoinedUsers(@RequestParam int days) throws Exception {
-        return ResponseEntity.ok(userService.lastJoined(days, getLoggedInUser()));
+    public ResponseEntity<?> getLastJoinedUsers(@RequestParam int days) throws Exception {
+        try{
+            List<User> userList = userService.lastJoined(days, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(userList);
+        } catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Exception Message : " + e);
+        }
     }
 
     @GetMapping("/last-updated")
-    public ResponseEntity<List<User>> getLastUpdatedUsers(@RequestParam int days) throws Exception {
-        return ResponseEntity.ok(userService.lastUpdated(days, getLoggedInUser()));
+    public ResponseEntity<?> getLastUpdatedUsers(@RequestParam int days) throws Exception {
+        try{
+            List<User> userList = userService.lastUpdated(days, currentUser.getLoggedInUser());
+            return ResponseEntity.status(HttpStatus.OK).body(userList);
+        }catch (AccessException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Exception Message : " + e);
+        }
     }
 
 }
