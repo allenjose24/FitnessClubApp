@@ -127,4 +127,9 @@ public class UserService {
         return userRepository.findByUpdatedAtAfterOrderByUpdatedAtDesc(date);
     }
 
+    @Transactional
+    public void loginTime(String email, LocalDateTime now){
+        userRepository.updateLastLoginAt(email, now);
+    }
+
 }
