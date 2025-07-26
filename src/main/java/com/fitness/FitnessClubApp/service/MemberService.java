@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.expression.AccessException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -89,6 +90,21 @@ public class MemberService {
         memberRepository.deleteById(id);
     }
 
+    public List<Member> lastJoined(int days, User loggedIn) throws Exception{
+        if(loggedIn.getRole()!=Role.ADMIN){
+            throw new AccessException("You are not allowed to view this member");
+        }
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return memberRepository.findAllByJoinDateAfterOrderByJoinDateDesc(date);
+    }
+
+    public List<Member> lastUpdated(int days, User loggedIn) throws Exception{
+        if(loggedIn.getRole()!=Role.ADMIN){
+            throw new AccessException("You are not allowed to view this member");
+        }
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return memberRepository.findAllByUpdatedAtAfterOrderByUpdatedAtDesc(date);
+    }
 
 
 }
