@@ -42,7 +42,6 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-//    @NotNull(message = "Role is required")
     private Role role;
 
     @ManyToOne
