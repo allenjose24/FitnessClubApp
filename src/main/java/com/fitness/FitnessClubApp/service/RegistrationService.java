@@ -8,6 +8,7 @@ import com.fitness.FitnessClubApp.model.Status;
 import com.fitness.FitnessClubApp.model.User;
 import com.fitness.FitnessClubApp.repository.MemberRepository;
 import com.fitness.FitnessClubApp.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,11 @@ public class RegistrationService {
     private final MemberRepository memberRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final MembershipService  membershipService;
 
 
 
+    @Transactional
     public AuthenticationResponse register(RegistrationDTO registrationDTO, Role role) throws RuntimeException {
         if(memberRepository.existsByEmail(registrationDTO.getEmail())) {
             throw new RuntimeException("Email already exists");
@@ -48,6 +51,8 @@ public class RegistrationService {
         user.setMember(member);
 
         userRepository.save(user);
+
+        membershipService.assignFreeMembership(member);
 
         String token = jwtService.generateToken(user.getMember().getEmail(), role);
         return new AuthenticationResponse(
