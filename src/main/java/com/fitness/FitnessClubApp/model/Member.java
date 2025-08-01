@@ -1,5 +1,6 @@
 package com.fitness.FitnessClubApp.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -52,5 +53,10 @@ public class Member{
     @NotNull(message = "Updated date is required")
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Membership membership;
+
 
 }
