@@ -39,7 +39,7 @@ public class AuthenticationController {
             AuthenticationResponse response = registrationService.register(registrationDTO, Role.TRAINER);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch(Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
